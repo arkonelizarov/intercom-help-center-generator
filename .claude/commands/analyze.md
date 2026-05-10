@@ -1,29 +1,62 @@
-Analyze the source repositories and propose a Help Center structure.
+Analyze source repositories and propose a Help Center structure. Do not write any files until the user approves.
 
-## Steps
+## Step 1 — Fetch sources
 
-1. Read `sources.yaml` to get the list of repositories and their descriptions.
+Run `npm run fetch-sources` to clone or update all repos from `sources.yaml` into `.sources/`.
+If `sources.yaml` has no entries, stop and ask the user to fill it in first.
 
-2. Run `npm run fetch-sources` to clone or update all repos into `.sources/`.
+## Step 2 — Explore repos
 
-3. For each repo in `.sources/`, use the Explore subagent to thoroughly map:
-   - All screens, pages, and views (navigation structure)
-   - All user-facing features and flows
-   - All error messages and edge cases
-   - All settings, configurations, and options available to the user
-   - Any i18n/localization files (these are the most direct source of UI strings)
+For each repo in `.sources/`, use the Explore subagent to map:
+- All screens, pages, and views (navigation structure)
+- All user-facing features and flows end-to-end
+- All error messages and edge cases
+- All settings and options available to the user
+- i18n/localization files (these give you the exact UI strings)
 
-4. Synthesize across all repos. Group related functionality into logical Help Center sections.
+Do this thoroughly — the quality of the generated articles depends entirely on how well you understand the product here.
 
-5. Output a proposed `collections.yaml` with:
-   - A `locales` block (ask the user which languages are needed if not already set)
-   - A `collections` list where each collection maps to a coherent topic area
-   - For each collection: a recommended list of articles with slugs and one-line descriptions
+## Step 3 — Propose structure
 
-6. Ask the user to review and confirm the structure before anything is written to disk.
-   Do not modify `collections.yaml` or create any files until the user approves.
+Present the proposed Help Center structure to the user in this format:
 
-## Output format
+---
 
-Present the proposed structure as a YAML code block ready to paste into `collections.yaml`,
-followed by a per-collection breakdown listing the articles you plan to generate.
+**Proposed Help Center structure**
+
+```yaml
+locales:
+  default: en
+  available: [en]   # list any additional locales if relevant
+
+collections:
+  - slug: getting-started
+    name: Getting started
+    description: ...
+    order: 1
+
+  - slug: ...
+```
+
+**Planned articles per collection:**
+
+**Getting started** (3 articles)
+- `first-login` — How to sign in for the first time
+- `account-setup` — Completing your profile and initial settings
+- `navigation-overview` — Understanding the main screens
+
+**[Next collection]** (N articles)
+- `slug` — one-line description
+- ...
+
+---
+
+Then ask: **"Does this structure look right? Reply with any changes, or say 'approve' to write the files."**
+
+## Step 4 — Apply after approval
+
+Only after the user explicitly approves (or approves with edits):
+1. Write the confirmed structure to `collections.yaml`.
+2. Confirm: "Structure saved to `collections.yaml`. Run `/generate` to write the articles."
+
+Do not create any `docs/` files here — that is `/generate`'s job.
