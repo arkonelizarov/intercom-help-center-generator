@@ -23,6 +23,18 @@ Publish reads `.env` (gitignored) for `INTERCOM_TOKEN`, `INTERCOM_REGION`, `INTE
 - **Required front matter fields:** `slug`, `title`, `collection`, `locale`, `state`. Validator rejects missing fields, duplicate slugs within a locale, and `collection` values not in `collections.yaml`.
 - **State file persistence.** `.intercom-state.json` must be committed or persisted via CI cache. Losing it means the next publish creates duplicate articles in Intercom.
 
+## Source repositories
+
+The file [`sources.yaml`](sources.yaml) lists the repositories that this knowledge base documents. Before writing or editing any behavioural claim — button label, screen name, error message, flow, feature behaviour — clone the relevant repo (or use the Explore subagent for a focused lookup) and find the exact reference.
+
+**Workflow:**
+1. Read `sources.yaml` to find which repo owns the claim you're verifying.
+2. Use the Explore subagent or `git clone --depth 1` to locate the relevant file and line.
+3. Cite the reference in your reasoning before writing the claim.
+4. If the Explore subagent reports "not found" — the claim is forbidden.
+
+If `sources.yaml` has no entries, ask the user which repository to check before writing anything product-specific.
+
 ## Hard rules for writing and editing articles
 
 ### 1. Only write what is true of the product

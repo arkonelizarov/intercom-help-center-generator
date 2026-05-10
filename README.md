@@ -18,6 +18,7 @@ CI validates docs on every PR and publishes on every push to `main`.
 ```
 .
 ├── collections.yaml              # Help Center structure (collections + locales)
+├── sources.yaml                  # source repos whose code this knowledge base documents
 ├── docs/
 │   ├── _templates/
 │   │   └── article.md            # copy this when creating a new article
@@ -70,7 +71,28 @@ INTERCOM_ADMIN_ID=12345678
 | `INTERCOM_REGION` | `us`, `eu`, or `au` — must match your workspace region |
 | `INTERCOM_ADMIN_ID` | Run `curl -H "Authorization: Bearer <token>" https://api.intercom.io/admins` and pick your admin's `id` |
 
-### 3. Define your Help Center structure
+### 3. Point to your source repositories
+
+Edit [`sources.yaml`](sources.yaml) to list the repositories whose code this knowledge base documents. Claude uses this file to verify behavioural claims (button labels, error messages, flows) before writing or editing articles.
+
+```yaml
+sources:
+  - url: git@github.com:your-org/your-app.git
+    description: >
+      Mobile app. Authoritative for screen names, button labels,
+      error strings, and UI flows.
+    paths:
+      - src/screens
+      - src/i18n
+
+  - url: git@github.com:your-org/your-backend.git
+    description: >
+      Backend API. Authoritative for status codes and business logic.
+```
+
+If you're writing docs without a linked codebase (e.g. a manual process or external API), leave `sources` empty and verify claims manually.
+
+### 4. Define your Help Center structure
 
 Edit [`collections.yaml`](collections.yaml) — this is the only config file that describes your Help Center layout:
 

@@ -1,0 +1,36 @@
+# sources.yaml — source repositories that this knowledge base documents.
+#
+# Claude uses these when writing or editing articles to verify behavioural
+# claims (button labels, screen names, error messages, flows, etc.).
+# Every factual claim in an article must be traceable to one of these repos.
+#
+# HOW TO USE
+# - Add one entry per repository.
+# - `url` must be cloneable via SSH.
+# - `description` tells Claude what is authoritative in that repo.
+# - `paths` (optional) narrows where to look — omit to search the whole repo.
+
+sources: []
+
+# Example:
+#
+# sources:
+#   - url: git@github.com:your-org/your-mobile-app.git
+#     description: >
+#       React Native mobile app. Authoritative for screen names, button labels,
+#       navigation structure, error strings, and UI flows.
+#     paths:
+#       - src/screens
+#       - src/components
+#       - src/i18n
+#
+#   - url: git@github.com:your-org/your-backend.git
+#     description: >
+#       Backend API. Authoritative for status codes, error codes, business logic,
+#       and any behaviour not visible in the UI.
+#     paths:
+#       - src
+#
+#   - url: git@github.com:your-org/your-web-app.git
+#     description: >
+#       Customer-facing web app. Authoritative for web UI flows and copy.
