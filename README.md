@@ -2,7 +2,7 @@
 
 A Claude Code project that turns your source repositories into a published [Intercom](https://www.intercom.com) Help Center.
 
-**What is Intercom?** It's a customer support platform. Among other things it has a [Help Center](https://www.intercom.com/help-center) — a public knowledge base where you publish articles your users can read (think Notion docs, but served directly inside your product's support widget).
+**What is Intercom?** It's one of the most widely used helpdesk and customer support platforms — alongside Zendesk and Freshdesk. Among other things it has a [Help Center](https://www.intercom.com/help-center) — a public knowledge base where you publish articles your users can read (think Notion docs, but served directly inside your product's support widget).
 
 You point this project at your codebase. Claude reads the code, proposes a documentation structure, writes the articles, and publishes them to Intercom — with your approval at every step.
 
