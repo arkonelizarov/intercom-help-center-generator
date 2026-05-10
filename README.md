@@ -1,4 +1,4 @@
-# intercom-help-center-generator
+# Intercom Help Center Generator
 
 A Claude Code project that turns your source repositories into a published [Intercom](https://www.intercom.com) Help Center.
 
