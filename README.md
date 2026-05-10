@@ -1,10 +1,12 @@
 # Intercom Help Center Generator
 
-A Claude Code project that turns your source repositories into a published [Intercom](https://www.intercom.com) Help Center.
+Writing user documentation is time-consuming and easy to get wrong. This project does it for you — by reading your actual source code.
 
-**What is Intercom?** It's one of the most widely used helpdesk and customer support platforms — alongside Zendesk and Freshdesk. Among other things it has a [Help Center](https://www.intercom.com/help-center) — a public knowledge base where you publish articles your users can read (think Notion docs, but served directly inside your product's support widget).
+Point it at your repositories. Claude digs through the code: screens, navigation flows, button labels, error messages, i18n strings. From that, it writes user-facing articles explaining how your product works — where to tap, what each screen does, what to do when something goes wrong. The kind of docs you send to customers. Then it publishes them straight to your [Intercom](https://www.intercom.com) Help Center.
 
-You point this project at your codebase. Claude reads the code, proposes a documentation structure, writes the articles, and publishes them to Intercom — with your approval at every step.
+**What is Intercom?** It's a customer support platform with a built-in [Help Center](https://www.intercom.com/help-center) — a knowledge base your users can search and read, usually accessible from a support widget inside your product. The articles it hosts are things like "How to sign in", "How to make a payment", "What does this error mean" — practical, step-by-step guides written for end users, not developers.
+
+**What makes this different from just asking Claude to write docs?** The articles are grounded in real code. Claude finds the exact button label from the i18n file, the exact error message from the source, the exact navigation path from the screen components. Nothing is invented. You review and approve every article before it goes live. Claude handles the bulk of the work — reading the code, structuring the docs, writing the drafts — and you spend your time reviewing rather than writing from scratch.
 
 ---
 
