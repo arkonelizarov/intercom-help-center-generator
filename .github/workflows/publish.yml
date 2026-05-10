@@ -1,0 +1,45 @@
+name: Publish to Intercom
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run validate
+
+  publish:
+    needs: validate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Restore Intercom state
+        uses: actions/cache@v4
+        with:
+          path: .intercom-state.json
+          key: intercom-state-v1
+
+      - run: npm run publish
+        env:
+          INTERCOM_TOKEN: ${{ secrets.INTERCOM_TOKEN }}
+          INTERCOM_REGION: ${{ secrets.INTERCOM_REGION }}
+          INTERCOM_ADMIN_ID: ${{ secrets.INTERCOM_ADMIN_ID }}
+  # Secrets to set in GitHub → Settings → Secrets and variables → Actions:
+  #   INTERCOM_TOKEN, INTERCOM_REGION, INTERCOM_ADMIN_ID

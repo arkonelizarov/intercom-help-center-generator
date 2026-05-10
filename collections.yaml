@@ -1,0 +1,40 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# collections.yaml — declarative source of truth for your Intercom Help Center.
+#
+# HOW TO USE
+# 1. Define your locales below.  The `default` locale drives article creation;
+#    other locales are attached as translated_content.
+# 2. Add one entry per Intercom collection (section/category).
+#    `slug` must match the folder name under docs/{locale}/<slug>/
+# 3. Commit this file.  Credentials (token, admin_id, region) live in .env only.
+# ─────────────────────────────────────────────────────────────────────────────
+
+locales:
+  default: en
+  available:
+    - en
+    # - fr
+    # - ar
+    # - pt
+    # - sw
+
+collections:
+  - slug: getting-started
+    name: Getting started
+    description: First steps and initial setup.
+    order: 1
+    # icon: arr-sym-play-circle   # optional Intercom icon slug
+    # translated_content:
+    #   fr:
+    #     name: Premiers pas
+    #     description: Premières étapes et configuration initiale.
+
+  - slug: features
+    name: Features
+    description: How to use core product features.
+    order: 2
+
+  - slug: troubleshooting
+    name: Troubleshooting
+    description: Common errors and how to fix them.
+    order: 3
