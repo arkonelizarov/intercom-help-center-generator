@@ -1,89 +1,143 @@
 # CLAUDE.md
 
-Guidance for Claude Code when working in this repository.
+This is a **Claude-first project**. Claude Code is the primary actor — you analyze source repositories, write articles, and publish them to Intercom. The scripts are tools you call; the intelligence is yours.
 
-This repo is a Markdown-to-Intercom publishing pipeline. Articles live in `docs/`, structure is declared in `collections.yaml`, and the scripts in `scripts/` sync everything to Intercom Articles via API. Content only — no application code.
+---
+
+## What this project does
+
+Source repositories → Claude analysis → Markdown articles → Intercom Help Center.
+
+You read code (screens, flows, i18n strings, error definitions), write accurate user-facing documentation as Markdown, and publish it to an Intercom workspace via API.
+
+---
+
+## Project layout
+
+```
+sources.yaml          ← repos to analyze (filled in by the user)
+collections.yaml      ← Help Center structure (collections + locales)
+docs/                 ← articles you write, organized by locale and collection
+.sources/             ← local clones of source repos (gitignored, populated by fetch-sources)
+scripts/
+  fetch-sources.ts    ← clones/updates repos from sources.yaml into .sources/
+  validate-docs.ts    ← validates front matter before publish
+  publish-intercom.ts ← syncs collections + articles to Intercom API
+.intercom-state.json  ← maps slugs → Intercom IDs (auto-managed)
+.env                  ← credentials (gitignored)
+```
+
+---
 
 ## Commands
 
 ```bash
-npm install                  # one-time setup
-npm run validate             # check front matter, slug uniqueness, collection refs
-npm run publish:dry          # preview API calls without touching Intercom
-npm run publish              # upsert collections + articles via Intercom API
+npm run fetch-sources    # clone or update all repos from sources.yaml into .sources/
+npm run validate         # validate all article front matter
+npm run publish:dry      # preview Intercom API calls without touching anything
+npm run publish          # upsert collections + articles to Intercom (live)
 ```
 
-Publish reads `.env` (gitignored) for `INTERCOM_TOKEN`, `INTERCOM_REGION`, `INTERCOM_ADMIN_ID`. In CI, the publish job is gated on `$INTERCOM_TOKEN` — missing variable skips the job.
+Intercom credentials come from `.env` (gitignored). Required variables: `INTERCOM_TOKEN`, `INTERCOM_REGION`, `INTERCOM_ADMIN_ID`.
+
+---
+
+## Slash commands
+
+Use these to run the main workflows:
+
+| Command | What it does |
+|---|---|
+| `/analyze` | Explore source repos and propose a Help Center structure |
+| `/generate` | Write article drafts for all collections based on source code |
+| `/publish` | Validate and publish articles marked `state: published` to Intercom |
+
+---
+
+## Standard workflow
+
+### First time setup
+
+1. User fills in `sources.yaml` with repo SSH URLs.
+2. User fills in (or approves) `collections.yaml` with Help Center structure.
+3. Run `/analyze` to explore repos and propose/refine the structure.
+4. Run `/generate` to write article drafts.
+5. User reviews drafts, changes `state: draft` → `state: published` on approved articles.
+6. Run `/publish` to send to Intercom.
+
+### Ongoing updates
+
+When source repos change and docs need updating:
+1. Run `npm run fetch-sources` to pull latest code.
+2. Identify what changed (ask the user, or explore `.sources/` git logs).
+3. Edit the relevant articles in `docs/`.
+4. Run `/publish`.
+
+---
 
 ## Architecture invariants
 
-- **Slug is the only stable article identifier in source.** Intercom IDs live in `.intercom-state.json`. Slug must never be renamed after first publish — doing so orphans the existing Intercom article and creates a duplicate.
-- **Multi-locale via `translated_content`.** One slug = one Intercom article with multiple language variants. Not one article per locale.
-- **Region, token, and admin ID are workspace-specific.** They live only in `.env` and CI variables — never in `collections.yaml` or any committed file.
-- **Required front matter fields:** `slug`, `title`, `collection`, `locale`, `state`. Validator rejects missing fields, duplicate slugs within a locale, and `collection` values not in `collections.yaml`.
-- **State file persistence.** `.intercom-state.json` must be committed or persisted via CI cache. Losing it means the next publish creates duplicate articles in Intercom.
+- **Slug is permanent.** The `slug` field in front matter is the article's external identity. Never rename it after first publish — doing so orphans the Intercom article and creates a duplicate. If a rename is needed: delete the old article in Intercom UI, remove the entry from `.intercom-state.json`, rename slug, republish.
+- **Multi-locale via `translated_content`.** One slug = one Intercom article with language variants attached. Not one article per locale.
+- **Credentials are never committed.** `INTERCOM_TOKEN`, `INTERCOM_REGION`, `INTERCOM_ADMIN_ID` live only in `.env` and CI secrets.
+- **State file is auto-managed.** Do not edit `.intercom-state.json` manually except during deliberate workspace migrations.
+- **Required front matter:** `slug`, `title`, `collection`, `locale`, `state`. Validator rejects anything missing.
 
-## Source repositories
+---
 
-The file [`sources.yaml`](sources.yaml) lists the repositories that this knowledge base documents. Before writing or editing any behavioural claim — button label, screen name, error message, flow, feature behaviour — clone the relevant repo (or use the Explore subagent for a focused lookup) and find the exact reference.
+## Hard rules for writing articles
 
-**Workflow:**
-1. Read `sources.yaml` to find which repo owns the claim you're verifying.
-2. Use the Explore subagent or `git clone --depth 1` to locate the relevant file and line.
-3. Cite the reference in your reasoning before writing the claim.
-4. If the Explore subagent reports "not found" — the claim is forbidden.
+### Only write what the code confirms
 
-If `sources.yaml` has no entries, ask the user which repository to check before writing anything product-specific.
+Every behavioural claim — button label, screen name, error message, navigation step, feature, flow — must be traceable to the source code in `.sources/`. Use the Explore subagent to find the exact file and line before writing.
 
-## Hard rules for writing and editing articles
-
-### 1. Only write what is true of the product
-
-Every behavioural claim — button label, screen name, error message, navigation step, feature behaviour — must be verifiable against the actual product. Do not invent, extrapolate, or fill gaps to make an article feel complete.
-
-If a detail cannot be confirmed:
+If something cannot be found:
 - Omit it, or
-- Ask the user to verify it, or
-- Note it explicitly as unverified
+- Leave a `<!-- TODO: could not verify — review before publishing -->` comment and keep `state: draft`, or
+- Ask the user
 
-Never use "probably", "typically", "usually", or "industry-standard" as a substitute for a real fact.
+Never fill gaps with "probably", "typically", "usually", or "industry-standard" guesses.
 
-### 2. UI strings stay in their source language
+### UI strings stay in their source form
 
-When writing articles in any locale, all UI strings — button labels, field names, error messages, status labels, tab names, screen titles, navigation items — must appear exactly as they appear in the product interface. Only the descriptive prose around them is translated.
+When writing articles in any locale, all UI strings — button labels, field names, error messages, tab names, screen titles — must appear exactly as they appear in the product. Only the surrounding prose is translated. i18n files in the source repos are the authoritative source for these strings.
 
-Rationale: keeps articles stable across locales and prevents drift if the product's interface changes.
+### Drafts are safe; published is the user's call
 
-### 3. Slugs are permanent
+Always generate articles with `state: draft`. Never set `state: published` yourself. That decision belongs to the user.
 
-Never rename a `slug` field in an existing article. If a rename is required, follow the migration steps in the README.
+### Verify before every claim
 
-### 4. State file is not content
+Workflow before writing or editing any behavioural claim:
+1. Identify which repo in `sources.yaml` owns this feature.
+2. Use Explore subagent to locate the exact reference in `.sources/`.
+3. Cite the file path in your reasoning.
+4. Write the claim.
 
-Do not edit `.intercom-state.json` manually unless performing a deliberate migration (e.g., pointing an existing slug at a different Intercom article ID). Its values are managed by the publish script.
+If Explore returns "not found" — the claim is forbidden.
 
-### 5. `collections.yaml` is the source of truth for structure
-
-Do not add `collection` values to article front matter that are not declared in `collections.yaml`. The validator will reject them. Add the collection to `collections.yaml` first.
+---
 
 ## Adding a new locale
 
 1. Add the locale code to `collections.yaml → locales.available`.
-2. Add `translated_content` blocks to any collections that need translated names.
-3. Create `docs/{locale}/{collection-slug}/{article}.md` files mirroring the default locale, with the same `slug` and `collection` values but the new `locale` value.
-4. Run `npm run validate` before pushing.
+2. Add `translated_content` to any collections that need translated names/descriptions.
+3. Create `docs/{locale}/{collection-slug}/{article}.md` for each article, using the same `slug` and `collection` values, with the new `locale` value.
+4. Run `npm run validate`.
 
 ## Adding a new collection
 
-1. Add an entry to `collections.yaml → collections` with a unique `slug`, `name`, `description`, and `order`.
-2. Create the folder `docs/{default-locale}/{slug}/`.
-3. Run `npm run publish` — the collection is created in Intercom first, then articles referencing it can be published.
+1. Add an entry to `collections.yaml → collections`.
+2. Create `docs/{default-locale}/{new-slug}/`.
+3. Run `/generate` or write articles manually.
+4. Run `/publish` — collections are created in Intercom before articles.
 
-## CI
+---
+
+## CI (GitHub Actions)
 
 Two jobs in `.github/workflows/publish.yml`:
+- `validate` — runs on every PR and push to `main`
+- `publish` — runs on push to `main`, gated on `INTERCOM_TOKEN` secret
 
-- `validate` — runs on every PR and push to `main`.
-- `publish` — runs on push to `main` only, gated on `INTERCOM_TOKEN` secret being set.
-
-State persists between CI runs via `actions/cache` with key `intercom-state-v1`.
+State persists between runs via `actions/cache` with key `intercom-state-v1`.

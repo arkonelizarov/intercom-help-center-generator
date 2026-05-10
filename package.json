@@ -8,6 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "fetch-sources": "tsx scripts/fetch-sources.ts",
     "validate": "tsx scripts/validate-docs.ts",
     "publish": "tsx scripts/publish-intercom.ts",
     "publish:dry": "tsx scripts/publish-intercom.ts --dry-run"
